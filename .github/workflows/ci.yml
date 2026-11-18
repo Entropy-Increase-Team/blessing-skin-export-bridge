@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+
+      - name: PHP syntax check
+        run: find . -maxdepth 4 -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Install dev dependencies and run php-cs-fixer
+        run: |
+          composer install --no-interaction --no-progress
+          ./vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --diff --format=txt
+
+      - name: Validate package.json
+        run: php -r '$j = json_decode(file_get_contents("package.json"), true); if (!is_array($j) || empty($j["name"]) || empty($j["namespace"])) { fwrite(STDERR, "Invalid package.json\n"); exit(1); }'
+
+      - name: Run unit tests
+        run: php tests/SupportTest.php
+
+      - name: Build release zip (excluding dev files)
+        run: |
+          mkdir -p build/blessing-skin-export-bridge
+          cp -r bootstrap.php callbacks.php package.json routes.php LICENSE README.md src views lang build/blessing-skin-export-bridge/
+          (cd build && zip -r blessing-skin-export-bridge.zip blessing-skin-export-bridge)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blessing-skin-export-bridge
+          path: build/blessing-skin-export-bridge.zip

@@ -1,0 +1,3 @@
+title: SkinLoom 迁移桥接 (Export Bridge)
+description: 只读导出 Blessing Skin 用户、角色、衣柜与材质文件，供 SkinLoom 向导安全迁移。
+freeze_notice: 站点正在迁移至 SkinLoom，已暂时进入只读模式（请稍后从新站点访问）。

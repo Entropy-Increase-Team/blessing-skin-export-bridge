@@ -1,0 +1,19 @@
+{
+  "name": "blessing-skin-export-bridge",
+  "version": "1.0.0",
+  "title": "SkinLoomBridge::general.title",
+  "description": "SkinLoomBridge::general.description",
+  "author": "Entropy-Increase-Team",
+  "url": "https://github.com/Entropy-Increase-Team/blessing-skin-export-bridge",
+  "namespace": "SkinLoomBridge",
+  "require": {
+    "blessing-skin-server": "^6.0.0"
+  },
+  "enchants": {
+    "config": "Configuration",
+    "icon": {
+      "fa": "exchange-alt",
+      "bg": "indigo"
+    }
+  }
+}

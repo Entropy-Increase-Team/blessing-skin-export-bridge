@@ -1,0 +1,162 @@
+{% extends 'admin.base' %}
+
+{% block title %}{{ trans('SkinLoomBridge::config.title') }}{% endblock %}
+
+{% block content %}
+  <div class="alert alert-warning">
+    <i class="fas fa-shield-alt mr-1"></i>
+    {{ trans('SkinLoomBridge::config.security_banner') }}
+  </div>
+
+  {% if not isHttps %}
+    <div class="alert alert-info">
+      <i class="fas fa-lock-open mr-1"></i>
+      {{ trans('SkinLoomBridge::config.http_notice') }}
+    </div>
+  {% endif %}
+
+  {% if actionMessage %}
+    <div class="alert alert-{{ actionMessageType }}">
+      {{ actionMessage }}
+    </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card card-primary card-outline">
+        <div class="card-header">
+          <h3 class="card-title">{{ trans('SkinLoomBridge::config.credentials.title') }}</h3>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">{{ trans('SkinLoomBridge::config.credentials.intro') }}</p>
+
+          <div class="form-group">
+            <label for="bridge-site-url">{{ trans('SkinLoomBridge::config.credentials.site_url') }}</label>
+            <div class="input-group">
+              <input id="bridge-site-url" type="text" class="form-control text-monospace" readonly value="{{ siteUrl }}">
+              <div class="input-group-append">
+                <button type="button" class="btn btn-outline-secondary bridge-copy-btn" data-copy-target="bridge-site-url">
+                  {{ trans('SkinLoomBridge::config.actions.copy') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>{{ trans('SkinLoomBridge::config.credentials.status_label') }}</label>
+            <div>
+              {% if freshToken %}
+                <span class="badge badge-success">{{ trans('SkinLoomBridge::config.credentials.status_fresh') }}</span>
+              {% elseif tokenActive %}
+                <span class="badge badge-info">{{ trans('SkinLoomBridge::config.credentials.status_active') }}</span>
+              {% elseif tokenExpired %}
+                <span class="badge badge-danger">{{ trans('SkinLoomBridge::config.credentials.status_expired') }}</span>
+              {% else %}
+                <span class="badge badge-secondary">{{ trans('SkinLoomBridge::config.credentials.status_inactive') }}</span>
+              {% endif %}
+              {% if expiresAtFormatted and tokenActive %}
+                <small class="text-muted ml-2">
+                  {{ trans('SkinLoomBridge::config.credentials.expires_at', {time: expiresAtFormatted}) }}
+                </small>
+              {% endif %}
+            </div>
+            <small class="form-text text-muted">
+              {{ trans('SkinLoomBridge::config.credentials.storage_driver', {driver: fsDriver}) }}
+            </small>
+          </div>
+
+          {% if freshToken %}
+            <div class="form-group">
+              <label for="bridge-token">{{ trans('SkinLoomBridge::config.credentials.token_label') }}</label>
+              <div class="input-group">
+                <input id="bridge-token" type="text" class="form-control text-monospace" readonly value="{{ freshToken }}">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-outline-secondary bridge-copy-btn" data-copy-target="bridge-token">
+                    {{ trans('SkinLoomBridge::config.actions.copy') }}
+                  </button>
+                </div>
+              </div>
+              <small class="form-text text-danger">
+                {{ trans('SkinLoomBridge::config.credentials.once_warning') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="bridge-bundle">{{ trans('SkinLoomBridge::config.credentials.bundle_label') }}</label>
+              <div class="input-group">
+                <input id="bridge-bundle" type="text" class="form-control text-monospace" readonly value="{{ bundleJson }}">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-outline-primary bridge-copy-btn" data-copy-target="bridge-bundle">
+                    {{ trans('SkinLoomBridge::config.actions.copy_bundle') }}
+                  </button>
+                </div>
+              </div>
+              <small class="form-text text-muted">
+                {{ trans('SkinLoomBridge::config.credentials.bundle_hint') }}
+              </small>
+            </div>
+          {% elseif tokenActive %}
+            <div class="alert alert-light border">
+              {{ trans('SkinLoomBridge::config.credentials.hashed_hint') }}
+            </div>
+          {% endif %}
+
+          <form method="post" class="d-flex flex-wrap">
+            {{ csrf_field()|raw }}
+            <button type="submit" name="bridge_action" value="generate" class="btn btn-primary mr-2 mb-2">
+              <i class="fas fa-key mr-1"></i>
+              {% if tokenActive %}
+                {{ trans('SkinLoomBridge::config.actions.rotate') }}
+              {% else %}
+                {{ trans('SkinLoomBridge::config.actions.generate') }}
+              {% endif %}
+            </button>
+            {% if tokenActive or tokenExpired %}
+              <button type="submit" name="bridge_action" value="revoke" class="btn btn-danger mb-2">
+                <i class="fas fa-ban mr-1"></i>
+                {{ trans('SkinLoomBridge::config.actions.revoke') }}
+              </button>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      {{ form|raw }}
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var copiedLabel = '{{ trans('SkinLoomBridge::config.actions.copied')|e('js') }}';
+      function fallbackCopy(el) {
+        try {
+          el.focus();
+          el.select();
+          return document.execCommand && document.execCommand('copy');
+        } catch (e) {
+          return false;
+        }
+      }
+      document.querySelectorAll('.bridge-copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var el = document.getElementById(btn.getAttribute('data-copy-target'));
+          if (!el) return;
+          var markCopied = function () {
+            var prev = btn.textContent;
+            btn.textContent = copiedLabel;
+            setTimeout(function () { btn.textContent = prev; }, 1500);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(el.value).then(markCopied).catch(function () {
+              if (fallbackCopy(el)) markCopied();
+            });
+          } else if (fallbackCopy(el)) {
+            markCopied();
+          }
+        });
+      });
+    })();
+  </script>
+{% endblock %}

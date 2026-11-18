@@ -1,0 +1,20 @@
+{
+  "name": "entropy-increase-team/blessing-skin-export-bridge",
+  "description": "Read-only export bridge plugin for Blessing Skin v6 to migrate cleanly to SkinLoom.",
+  "type": "project",
+  "license": "MIT",
+  "require": {
+    "php": "^8.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.50"
+  },
+  "autoload": {
+    "psr-4": {
+      "SkinLoomBridge\\": "src/"
+    }
+  },
+  "scripts": {
+    "lint": "php-cs-fixer fix --dry-run --diff"
+  }
+}
