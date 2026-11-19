@@ -29,6 +29,9 @@ class BridgeController extends Controller
         'uuid',
         'language_lines',
         'oauth_clients',
+        'invitation_codes',
+        'mojang_verifications',
+        'textures_description',
     ];
 
     private const READ_TABLES = [
@@ -158,6 +161,7 @@ class BridgeController extends Controller
                 'textures.head-ihdr',
                 'utf8.substitute',
                 'extensions.v1',
+                'extensions.rows.v1',
                 'mail.v1',
             ],
             'bsVersion' => (string) config('app.version', ''),
@@ -419,6 +423,67 @@ class BridgeController extends Controller
                         'password' => (bool) ($r->password_client ?? false),
                         'revoked' => (bool) ($r->revoked ?? false),
                         'createdAt' => $r->created_at !== null ? (string) $r->created_at : '',
+                    ];
+                    $nextCursor = (string) $r->id;
+                }
+                break;
+
+            case 'invitation_codes':
+                $q = DB::table('invitation_codes')
+                    ->select(['id', 'code', 'generated_at', 'used_by', 'used_at'])
+                    ->orderBy('id');
+                if ($after !== '') {
+                    $q->where('id', '>', (int) $after);
+                }
+                $batch = $q->limit($limit + 1)->get();
+                $hasMore = $batch->count() > $limit;
+                foreach ($batch->take($limit) as $r) {
+                    $rows[] = [
+                        'id' => (int) $r->id,
+                        'code' => (string) ($r->code ?? ''),
+                        'generatedAt' => $r->generated_at !== null ? (string) $r->generated_at : '',
+                        'usedBy' => (int) ($r->used_by ?? 0),
+                        'usedAt' => $r->used_at !== null ? (string) $r->used_at : '',
+                    ];
+                    $nextCursor = (string) $r->id;
+                }
+                break;
+
+            case 'mojang_verifications':
+                $q = DB::table('mojang_verifications')
+                    ->select(['id', 'user_id', 'uuid', 'verified', 'created_at'])
+                    ->orderBy('id');
+                if ($after !== '') {
+                    $q->where('id', '>', (int) $after);
+                }
+                $batch = $q->limit($limit + 1)->get();
+                $hasMore = $batch->count() > $limit;
+                foreach ($batch->take($limit) as $r) {
+                    $rows[] = [
+                        'id' => (int) $r->id,
+                        'userId' => (int) ($r->user_id ?? 0),
+                        'uuid' => (string) ($r->uuid ?? ''),
+                        'verified' => (bool) ($r->verified ?? true),
+                        'createdAt' => $r->created_at !== null ? (string) $r->created_at : '',
+                    ];
+                    $nextCursor = (string) $r->id;
+                }
+                break;
+
+            case 'textures_description':
+                $q = DB::table('textures_description')
+                    ->select(['id', 'tid', 'description'])
+                    ->orderBy('id');
+                if ($after !== '') {
+                    $q->where('id', '>', (int) $after);
+                }
+                $batch = $q->limit($limit + 1)->get();
+                $hasMore = $batch->count() > $limit;
+                foreach ($batch->take($limit) as $r) {
+                    $rows[] = [
+                        'id' => (int) $r->id,
+                        'textureId' => (int) ($r->tid ?? 0),
+                        'description' => (string) ($r->description ?? ''),
                     ];
                     $nextCursor = (string) $r->id;
                 }
