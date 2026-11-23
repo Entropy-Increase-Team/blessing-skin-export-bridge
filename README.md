@@ -1,5 +1,14 @@
 # blessing-skin-export-bridge
 
+<p>
+  <a href="https://github.com/Entropy-Increase-Team/blessing-skin-export-bridge/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Entropy-Increase-Team/blessing-skin-export-bridge/ci.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=CI" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Entropy-Increase-Team/blessing-skin-export-bridge?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/Blessing_Skin-%5E6.0-4F46E5?style=flat-square" alt="Blessing Skin ^6.0">
+  <img src="https://img.shields.io/badge/PHP-%5E8.0-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP ^8.0">
+  <img src="https://img.shields.io/badge/Bridge_Protocol-v1-0F766E?style=flat-square" alt="Bridge Protocol v1">
+  <a href="https://github.com/Entropy-Increase-Team/blessing-skin-export-bridge/stargazers"><img src="https://img.shields.io/github/stars/Entropy-Increase-Team/blessing-skin-export-bridge?style=flat-square&logo=github" alt="GitHub Stars"></a>
+</p>
+
 **Blessing Skin Server v6.x 专用的只读迁移导出桥接插件**，配合 [SkinLoom（云织）](https://github.com/Entropy-Increase-Team/skinloom) 安装向导使用，无需开放 MySQL/PostgreSQL 数据库端口或手动拷贝海量材质归档，即可通过 HTTPS 安全、分批地将原有 Blessing Skin 站点的用户、角色、衣柜、站点设置及材质文件远程迁移到全新的 SkinLoom 实例。
 
 > 本仓库作为 **独立插件仓库** 维护（不混入 SkinLoom Go/Next.js 主仓），遵循 Blessing Skin Server v6 官方插件规范（`^6.0.0`），源码目录下 `src/` 采用 PSR-4（`SkinLoomBridge\`）自动加载，无需运行 Composer 安装运行期依赖即可直接部署。
