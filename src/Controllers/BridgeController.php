@@ -65,10 +65,11 @@ class BridgeController extends Controller
                 if (str_starts_with($name, 'skinloom_bridge_')) {
                     continue;
                 }
-                if (!$exportSensitive && $name === 'ygg_private_key') {
+                $val = (string) ($row->option_value ?? '');
+                if (!$exportSensitive && self::isSensitiveOption($name, $val)) {
                     continue;
                 }
-                $options[$name] = (string) ($row->option_value ?? '');
+                $options[$name] = $val;
             }
         }
 
@@ -561,6 +562,39 @@ class BridgeController extends Controller
         } catch (\Throwable $e) {
             return -1;
         }
+    }
+
+    private static function isSensitiveOption(string $name, string $value = ''): bool
+    {
+        if (str_contains($value, '-----BEGIN ') && str_contains($value, 'PRIVATE KEY-----')) {
+            return true;
+        }
+        $norm = preg_replace('/[^a-z0-9]+/', '_', strtolower(trim($name))) ?? '';
+        $norm = trim($norm, '_');
+        if ($norm === '') {
+            return false;
+        }
+        // Safe public/site-key exemptions that must remain exportable when export_sensitive is off.
+        foreach (['public_key', 'pubkey', 'site_key', 'sitekey'] as $safe) {
+            if ($norm === $safe || str_ends_with($norm, '_'.$safe)) {
+                return false;
+            }
+        }
+        $sensitiveTerms = [
+            'private_key', 'privatekey', 'priv_key', 'privkey',
+            'secret', 'secrets', 'secret_key', 'secretkey',
+            'member_key', 'api_key', 'apikey', 'access_key', 'accesskey',
+            'signing_key', 'encryption_key', 'master_key', 'jwt_key',
+            'password', 'passwd', 'pwd', 'passphrase',
+            'token', 'tokens', 'credential', 'credentials',
+        ];
+        foreach ($sensitiveTerms as $term) {
+            if ($norm === $term || str_ends_with($norm, '_'.$term)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function json(array $payload, int $status = 200): JsonResponse
